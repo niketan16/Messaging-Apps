@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Chat UI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/temp_chat.css') }}">
+
+  <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css'>
+  <link rel='stylesheet' href='https://onesignal.github.io/emoji-picker/lib/css/emoji.css'>
+
+</head>
+
+<body>
+  <!-- partial:index.partial.html -->
+  <div class="app">
+    <div class="header">
+      <div class="logo">
+        <svg viewBox="0 0 513 513" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M256.025.05C117.67-2.678 3.184 107.038.025 245.383a240.703 240.703 0 0085.333 182.613v73.387c0 5.891 4.776 10.667 10.667 10.667a10.67 10.67 0 005.653-1.621l59.456-37.141a264.142 264.142 0 0094.891 17.429c138.355 2.728 252.841-106.988 256-245.333C508.866 107.038 394.38-2.678 256.025.05z" />
+          <path
+            d="M330.518 131.099l-213.825 130.08c-7.387 4.494-5.74 15.711 2.656 17.97l72.009 19.374a9.88 9.88 0 007.703-1.094l32.882-20.003-10.113 37.136a9.88 9.88 0 001.083 7.704l38.561 63.826c4.488 7.427 15.726 5.936 18.003-2.425l65.764-241.49c2.337-8.582-7.092-15.72-14.723-11.078zM266.44 356.177l-24.415-40.411 15.544-57.074c2.336-8.581-7.093-15.719-14.723-11.078l-50.536 30.744-45.592-12.266L319.616 160.91 266.44 356.177z"
+            fill="#fff" /></svg>
+      </div>
+      <div class="search-bar">
+        <input type="text" placeholder="Search..." />
+      </div>
+      <div class="user-settings">
+        <div class="dark-light">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" /></svg>
+        </div>
+        <div class="settings" style="display: none;">
+          <a class="group-settings" style="text-decoration: none; color:inherit">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
+            </svg>
+          </a>
+        </div>
+        <img class="user-profile" src="{{ user_profile }}" alt="" class="account-profile" alt="">
+      </div>
+    </div>
+    <div class="wrapper">
+      <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+      <script>
+        var current_key = "";
+        var selected_type = "";
+
+        var message_from = 0;
+        var message_to = 7;
+
+        var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+        socket.emit("join_notification", {
+          "key": {{notification_key|tojson}},
+          "username":{{username|tojson}}
+        });
+
+
+        function selectContact(key, friend_username) {
+          selected_type = "private";
+          $('#initial').css("display", "none");
+          $(".chat-area").css("display", "inherit");
+          $(".detail-area").css("display", "inherit");
+          const msg_list = document.querySelectorAll('.msg');
+          msg_list.forEach(c => c.classList.remove('active'));
+          const selected_contact = document.getElementById(key);
+          selected_contact.classList.add('active');
+          $(".chat-area-title").text(friend_username);
+          $('.detail-title').text(friend_username);
+          if (current_key == "") {
+            message_from = 0;
+            message_to = 7;
+            current_key = key;
+            join_chat(key);
+            get_details(key);
+            fetchMessages(key);
+          } else if (current_key != key) {
+            message_from = 0;
+            message_to = 7;
+            socket.emit('leave', {
+              "key": current_key
+            });
+            current_key = key;
+            join_chat(current_key);
+            const myNode = document.querySelector(".chat-area-main");
+            while (myNode.firstChild) {
+              myNode.removeChild(myNode.lastChild);
+            }
+            fetchMessages(key);
+            get_details(key);
+            scrollDownChatWindow();
+          }
+        }
+      </script>
+      <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          $(".chat-area").scrollTop($(".chat-area")[0].scrollHeight);
+          $('.chat-area').scroll(function () {
+            if ($('.chat-area').scrollTop() == 0) {
+              setTimeout(function () {
+                required_data = {
+                  "key": current_key,
+                  "from": message_from,
+                  "to": message_to
+                }
+                fetch("/load_messages", {
+                    method: "POST",
+                    body: JSON.stringify(required_data),
+                    cache: "no-cache",
+                    headers: new Headers({
+                      "content-type": "application/json"
+                    })
+                  }).then(res => res.json())
+                  .then((message_recieved) => {
+                    message_recieved = message_recieved["msg"];
+                    message_recieved = JSON.parse(message_recieved);
+                    if (message_recieved == "no") {
+
+                    } else {
+                      for (var i = 0; i < message_recieved.length; i++) {
+                        if (message_recieved[i].type == "text") {
+                          printData(message_recieved[i]);
+                        } else if (message_recieved[i].type == "image") {
+                          printImage(message_recieved[i]);
+                        } else if (message_recieved[i].type == "file") {
+                          printFile(message_recieved[i]);
+                        }
+                      }
+                    }
+                  });
+                message_from = message_to;
+                message_to = message_to + 6;
+                $('.chat-area').scrollTop(30);
+              }, 780);
+            }
+          });
+        });
+
+        function fetchMessages(key) {
+          required_data = {
+            "key": key,
+            "from": message_from,
+            "to": message_to
+          }
+          fetch("/load_messages", {
+              method: "POST",
+              body: JSON.stringify(required_data),
+              cache: "no-cache",
+              headers: new Headers({
+                "content-type": "application/json"
+              })
+            }).then(res => res.json())
+            .then((message_recieved) => {
+              message_recieved = message_recieved["msg"];
+              message_recieved = JSON.parse(message_recieved);
+              if (message_recieved == "no") {
+
+              } else {
+                for (var i = 0; i < message_recieved.length; i++) {
+                  if (message_recieved[i].type == "text") {
+                    printData(message_recieved[i]);
+                  } else if (message_recieved[i].type == "image") {
+                    printImage(message_recieved[i]);
+                  } else if (message_recieved[i].type == "file") {
+                    printFile(message_recieved[i]);
+                  }
+                }
+                scrollDownChatWindow();
+              }
+              message_from = message_to;
+              message_to += 6;
+            });
+        }
+
+        function printFile(data) {
+          var username = {{username|tojson}};
+          const message_container = document.createElement('div');
+          const profile_container = document.createElement('div');
+          const img_element = document.createElement('img');
+          const date_div = document.createElement('div');
+          const content_div = document.createElement('div');
+          const text_div = document.createElement('div');
+          const aEle = document.createElement('a');
+          aEle.setAttribute('href', "/files/" + data["link"])
+          aEle.innerHTML = "Attachment " + data["file_name"];
+          aEle.style.textDecoration = "none";
+          aEle.style.color = "inherit";
+
+          message_container.setAttribute("class", "chat-msg");
+          profile_container.setAttribute("class", "chat-msg-profile");
+          img_element.setAttribute("class", "chat-msg-img");
+          date_div.setAttribute("class", "chat-msg-date");
+          content_div.setAttribute("class", "chat-msg-content");
+          text_div.setAttribute("class", "chat-msg-text");
+
+          text_div.append(aEle);
+          date_div.innerHTML = data["time"];
+          content_div.append(text_div);
+          img_element.setAttribute("src", data["sender_profile"]);
+          profile_container.append(img_element);
+          profile_container.append(date_div);
+
+          message_container.append(profile_container);
+          message_container.append(content_div);
+
+          if (data["sender_username"] == username) {
+            message_container.classList.add("owner");
+          }
+          document.querySelector('.chat-area-main').prepend(message_container);
+        }
+
+        function printImage(data) {
+          var username = {{username | tojson}};
+          const message_container = document.createElement('div');
+          const profile_container = document.createElement('div');
+          const img_element = document.createElement('img');
+          const date_div = document.createElement('div');
+          const content_div = document.createElement('div');
+          const text_div = document.createElement('div');
+          const imageMessage = document.createElement('img');
+          imageMessage.setAttribute('src', "static\\file_uploads" + "\\" + data["saved_at"])
+          imageMessage.style.maxHeight = "500px";
+          imageMessage.style.maxWidth = "300px";
+
+          message_container.setAttribute("class", "chat-msg");
+          profile_container.setAttribute("class", "chat-msg-profile");
+          img_element.setAttribute("class", "chat-msg-img");
+          date_div.setAttribute("class", "chat-msg-date");
+          content_div.setAttribute("class", "chat-msg-content");
+          text_div.setAttribute("class", "chat-msg-text");
+
+          text_div.append(imageMessage);
+          date_div.innerHTML = data["time"];
+          content_div.append(text_div);
+          img_element.setAttribute("src", data["sender_profile"]);
+          profile_container.append(img_element);
+          profile_container.append(date_div);
+
+          message_container.append(profile_container);
+          message_container.append(content_div);
+
+          if (data["sender_username"] == username) {
+            message_container.classList.add("owner");
+          }
+          document.querySelector('.chat-area-main').prepend(message_container);
+        }
+
+        function scrollDownChatWindow() {
+          const chatWindow = document.querySelector(".chat-area");
+          chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function printData(data) {
+          var username = {{username | tojson}};
+          const message_container = document.createElement('div');
+          const profile_container = document.createElement('div');
+          const img_element = document.createElement('img');
+          const date_div = document.createElement('div');
+          const content_div = document.createElement('div');
+          const text_div = document.createElement('div');
+
+          message_container.setAttribute("class", "chat-msg");
+          profile_container.setAttribute("class", "chat-msg-profile");
+          img_element.setAttribute("class", "chat-msg-img");
+          date_div.setAttribute("class", "chat-msg-date");
+          content_div.setAttribute("class", "chat-msg-content");
+          text_div.setAttribute("class", "chat-msg-text");
+
+          text_div.innerHTML = data["message"];
+          date_div.innerHTML = data["time"];
+          content_div.append(text_div);
+          img_element.setAttribute("src", data["sender_profile"]);
+          profile_container.append(img_element);
+          profile_container.append(date_div);
+
+          message_container.append(profile_container);
+          message_container.append(content_div);
+
+          if (data["sender_username"] == username) {
+            message_container.classList.add("owner");
+          }
+          document.querySelector('.chat-area-main').prepend(message_container);
+        }
+
+        function selectGroup(key) {
+          $(".settings").show();
+          $('.group-settings').attr('href',"/group-settings/"+key);
+          selected_type = "group";
+          $('#initial').css("display", "none");
+          $(".chat-area").css("display", "inherit");
+          $(".detail-area").css("display", "inherit");
+          const msg_list = document.querySelectorAll('.msg');
+          msg_list.forEach(c => c.classList.remove('active'));
+          const selected_contact = document.getElementById(key);
+          selected_contact.classList.add('active');
+          $(".chat-area-title").text();
+          $('.detail-title').text();
+          if (current_key == "") {
+            message_from = 0;
+            message_to = 7;
+            current_key = key;
+            join_chat(key);
+            get_details(key);
+            fetchMessages(key);
+          } else if (current_key != key) {
+            message_from = 0;
+            message_to = 7;
+            socket.emit('leave', {
+              "key": current_key
+            });
+            current_key = key;
+            join_chat(current_key);
+            get_details(key);
+            const myNode = document.querySelector(".chat-area-main");
+            while (myNode.firstChild) {
+              myNode.removeChild(myNode.lastChild);
+            }
+            fetchMessages(key);
+          }
+        }
+
+        function get_details(key) {
+          required_data = {
+            "key": key
+          }
+          fetch("/get_details", {
+              method: "POST",
+              body: JSON.stringify(required_data),
+              cache: "no-cache",
+              headers: new Headers({
+                "content-type": "application/json"
+              })
+            }).then(res => res.json())
+            .then((message_recieved) => {
+              message_recieved = message_recieved["details"];
+              message_recieved = JSON.parse(message_recieved);
+              if (message_recieved["type"] == "group") {
+                $('.chat-area-title').text(message_recieved["group_name"]);
+                $('.detail-title').text(message_recieved["group_name"]);
+                $('.detail-subtitle').text("Created By " + message_recieved["created_by"] + " on " + message_recieved[
+                  "time"]);
+                document.getElementById('profile_side').setAttribute('src', "static/group_profile/" +
+                  message_recieved["group_profile"])
+                $(".detail-photo-title").text(message_recieved["group_description"])
+              } else {
+                var username = {{username | tojson}};
+                var id_profile = "";
+                for (var i = 0; i < message_recieved["users"].length; i++) {
+                  if (message_recieved["users"][i].username != username) {
+                    id_profile = message_recieved["users"][i].profile;
+                  }
+                }
+                $('.chat-area-title').text();
+                $('.detail-title').text(message_recieved["group_name"]);
+                $('.detail-subtitle').text("Friends since " + message_recieved["time"]);
+                document.getElementById('profile_side').setAttribute('src', id_profile)
+              }
+              const my_colors = document.querySelectorAll('.color');
+              my_colors.forEach(c => c.classList.remove('selected'));
+              my_colors.forEach(color => {
+                if (color.getAttribute('data-color') == message_recieved["chat-theme"]) {
+                  const theme = color.getAttribute('data-color');
+                  document.body.setAttribute('data-theme', theme);
+                  color.classList.add('selected');
+                }
+              });
+            });
+        }
+        socket.on('message', data => {
+          if (data["type"] == "text") {
+            var username = {{username | tojson}};
+            const message_container = document.createElement('div');
+            const profile_container = document.createElement('div');
+            const img_element = document.createElement('img');
+            const date_div = document.createElement('div');
+            const content_div = document.createElement('div');
+            const text_div = document.createElement('div');
+
+            message_container.setAttribute("class", "chat-msg");
+            profile_container.setAttribute("class", "chat-msg-profile");
+            img_element.setAttribute("class", "chat-msg-img");
+            date_div.setAttribute("class", "chat-msg-date");
+            content_div.setAttribute("class", "chat-msg-content");
+            text_div.setAttribute("class", "chat-msg-text");
+
+            text_div.innerHTML = data["message"];
+            date_div.innerHTML = data["time"];
+            content_div.append(text_div);
+            img_element.setAttribute("src", data["sender_profile"]);
+            profile_container.append(img_element);
+            profile_container.append(date_div);
+
+            message_container.append(profile_container);
+            message_container.append(content_div);
+
+            if (data["sender_username"] == username) {
+              message_container.classList.add("owner");
+            }
+            document.querySelector('.chat-area-main').append(message_container);
+          }
+          if (data["type"] == "image") {
+            var username = {{ username | tojson }};
+            const message_container = document.createElement('div');
+            const profile_container = document.createElement('div');
+            const img_element = document.createElement('img');
+            const date_div = document.createElement('div');
+            const content_div = document.createElement('div');
+            const text_div = document.createElement('div');
+            const imageMessage = document.createElement('img');
+            imageMessage.setAttribute('src', "static\\file_uploads" + "\\" + data["saved_at"])
+            imageMessage.style.maxHeight = "500px";
+            imageMessage.style.maxWidth = "300px";
+
+            message_container.setAttribute("class", "chat-msg");
+            profile_container.setAttribute("class", "chat-msg-profile");
+            img_element.setAttribute("class", "chat-msg-img");
+            date_div.setAttribute("class", "chat-msg-date");
+            content_div.setAttribute("class", "chat-msg-content");
+            text_div.setAttribute("class", "chat-msg-text");
+
+            text_div.append(imageMessage);
+            date_div.innerHTML = data["time"];
+            content_div.append(text_div);
+            img_element.setAttribute("src", data["sender_profile"]);
+            profile_container.append(img_element);
+            profile_container.append(date_div);
+
+            message_container.append(profile_container);
+            message_container.append(content_div);
+
+            if (data["sender_username"] == username) {
+              message_container.classList.add("owner");
+            }
+            document.querySelector('.chat-area-main').append(message_container);
+            scrollDownChatWindow();
+          }
+          if (data["type"] == "file") {
+            var username = {{username | tojson}};
+            const message_container = document.createElement('div');
+            const profile_container = document.createElement('div');
+            const img_element = document.createElement('img');
+            const date_div = document.createElement('div');
+            const content_div = document.createElement('div');
+            const text_div = document.createElement('div');
+            const aEle = document.createElement('a');
+            aEle.setAttribute('href', "/files/" + data["link"])
+            aEle.innerHTML = "Attachment " + data["file_name"];
+            aEle.style.textDecoration = "none";
+            aEle.style.color = "inherit";
+            message_container.setAttribute("class", "chat-msg");
+            profile_container.setAttribute("class", "chat-msg-profile");
+            img_element.setAttribute("class", "chat-msg-img");
+            date_div.setAttribute("class", "chat-msg-date");
+            content_div.setAttribute("class", "chat-msg-content");
+            text_div.setAttribute("class", "chat-msg-text");
+
+            text_div.append(aEle);
+            date_div.innerHTML = data["time"];
+            content_div.append(text_div);
+            img_element.setAttribute("src", data["sender_profile"]);
+            profile_container.append(img_element);
+            profile_container.append(date_div);
+
+            message_container.append(profile_container);
+            message_container.append(content_div);
+
+            if (data["sender_username"] == username) {
+              message_container.classList.add("owner");
+            }
+            document.querySelector('.chat-area-main').append(message_container);
+            scrollDownChatWindow();
+          }
+          scrollDownChatWindow();
+        });
+
+        function join_chat(key) {
+          socket.emit('join', {
+            "key": key
+          });
+        }
+
+        socket.on("notification", data => {
+          var my_div = document.getElementById(data["key"]);
+          var text_div = my_div.getElementsByClassName('msg-message');
+          ($('#' + data["key"]).find('.msg-message').text(data["notification"]));
+          my_div.remove();
+          document.querySelector('.conversation-area').prepend(my_div);
+        });
+      </script>
+      <div class="conversation-area" id="conversation-area">
+        {% for users in chat_list %}
+        {% if users['type']=="personal" %}
+        <div id="{{ users['unhashed'] }}">
+          {% if users["isOnline"] %}
+          <div class="msg online" id="{{ users['key'] }}"
+            onclick=selectContact('{{ users["key"] }}','{{ users["friend_username"] }}')>
+            {% endif %}
+            {% if users["isOnline"]==False %}
+            <div class="msg" id="{{ users['key'] }}"
+            onclick=selectContact('{{ users["key"] }}','{{ users["friend_username"] }}')>
+            {% endif %}
+            <img class="msg-profile" src="{{ users['profile'] }}" alt="" />
+            <div class="msg-detail">
+              <div class="msg-username">{{ users['friend_username'] }}</div>
+              <div class="msg-content">
+                <span class="msg-message">{{ users['last_message'] }}</span>
+                <span class="msg-date">20m</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        {% if users['type']=="group" %}
+        <div id="{{ users['unhashed'] }}">
+          <div class="msg" id="{{ users['key'] }}" onclick=selectGroup('{{ users["key"] }}')>
+            <img class="msg-profile" id="{{ users['key'] }}" src="{{ users['group_profile'] }}" alt="" />
+            <div class="msg-detail">
+              <div class="msg-username">{{ users['group_name'] }}</div>
+              <div class="msg-content">
+                <span class="msg-message">{{ users['last_message'] }}</span>
+                <span class="msg-date">20m</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+
+      <center>
+        <div id="initial">
+          <p style="margin:300px;">
+            No Conversation Selected
+          </p>
+        </div>
+      </center>
+
+      <div class="chat-area" style="display: none;">
+        <div class="chat-area-header">
+          <div class="chat-area-title">CodePen Group</div>
+          <!--<div class="chat-area-group">
+     <img class="chat-area-profile" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3364143/download+%283%29+%281%29.png" alt="" />
+     <img class="chat-area-profile" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3364143/download+%282%29.png" alt="">
+     <img class="chat-area-profile" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3364143/download+%2812%29.png" alt="" />
+     <span>+4</span>
+    </div>-->
+        </div>
+        <div class="chat-area-main">
+          <!-- <div class="chat-msg owner">
+     <div class="chat-msg-profile">
+      <img class="chat-msg-img" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3364143/download+%281%29.png" alt="" />
+      <div class="chat-msg-date">Time : </div>
+     </div>
+     <div class="chat-msg-content">
+      <div class="chat-msg-text">Tincidunt arcu non sodales😂</div>
+     </div>
+    </div>
+    <div class="chat-msg">
+     <div class="chat-msg-profile">
+      <img class="chat-msg-img" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3364143/download+%282%29.png" alt="">
+      <div class="chat-msg-date">Time : </div>
+     </div>
+     <div class="chat-msg-content">
+      <div class="chat-msg-text">Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et🥰</div>
+     </div>
+    </div> -->
+        </div>
+        <script>
+          function displayImageContainer() {
+            const closeModal = document.querySelector('.close-modal');
+            const apply = document.querySelector('.apply');
+            const dialog = document.querySelector('dialog');
+            const input = document.querySelector('input');
+            const output = document.querySelector('output');
+            dialog.showModal();
+          }
+        </script>
+        <style>
+          dialog {
+            text-align: center;
+            background-color: #333;
+            color: #333;
+            border: none;
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px 2px rgba(0, 0, 0, 0.5);
+            width: 500px;
+            max-width: 80%;
+          }
+
+          dialog[open] {
+            animation: toggle-modal .3s ease-in-out;
+          }
+
+          dialog::backdrop {
+            background: rgba(0, 0, 0, .5);
+          }
+
+          dialog h2 {
+            margin: 0 0 30px;
+            color: #eee;
+          }
+
+          input,
+          button {
+            padding: 8px 20px;
+            margin-bottom: 5px;
+            border-radius: 3px;
+            border: none;
+            cursor: pointer;
+          }
+
+          button {
+            color: #fff;
+            background: #04b95b;
+          }
+
+          .close-modal {
+            background: #c70000;
+          }
+
+          .open-modal {
+            margin-bottom: 40px;
+          }
+
+          @keyframes toggle-modal {
+            from {
+              opacity: 0;
+            }
+
+            to {
+              opacity: 1;
+            }
+          }
+        </style>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+        <script>
+          function readURL(input) {
+            if (input.files && input.files[0]) {
+              var reader = new FileReader();
+
+              reader.onload = function (e) {
+                $('#preview').attr('src', e.target.result);
+              }
+
+              reader.readAsDataURL(input.files[0]); // convert to base64 string
+            }
+          }
+
+          function sendImage() {
+            var message = document.getElementById('imgInp').files[0];
+            var fileReader = new FileReader();
+            fileReader.readAsDataURL(message);
+            var user_type = "";
+            if (selected_type == "private") {
+              user_type = "personal";
+            } else {
+              user_type = "group";
+            }
+            fileReader.onload = () => {
+              var arrayBuffer = fileReader.result;
+              socket.emit('new_message', {
+                "user_type": user_type,
+                "sender_username": {{username | tojson}},
+                "sender_profile": $('.user-profile').attr('src'),
+                "message": arrayBuffer,
+                "file_name": message.name,
+                "type": "image",
+                "key": current_key,
+              });
+              message_from += 1;
+              message_to += 1;
+            }
+          }
+
+          function displayFileContainer() {
+            const closeModal = document.querySelector('#close-modal');
+            const apply = document.querySelector('#apply');
+            const dialog = document.querySelector('#dialog');
+            const input = document.querySelector('#file');
+            const output = document.querySelector('output');
+            dialog.showModal();
+          }
+
+          function sendFile() {
+            var message = document.getElementById('file').files[0];
+            var fileReader = new FileReader();
+            var user_type = "";
+            if (selected_type == "private") {
+              user_type = "personal";
+            } else {
+              user_type = "group";
+            }
+            fileReader.readAsDataURL(message);
+            fileReader.onload = () => {
+              var arrayBuffer = fileReader.result;
+              socket.emit('new_message', {
+                "user_type": user_type,
+                "sender_username": {{username | tojson}},
+                "sender_profile": $('.user-profile').attr('src'),
+                "message": arrayBuffer,
+                "file_name": message.name,
+                "type": "file",
+                "key": current_key,
+              });
+              message_from += 1;
+              message_to += 1;
+            }
+          }
+        </script>
+        <div class="chat-area-footer">
+          <dialog>
+            <img id="preview" src="#">
+            <form method="dialog">
+              <center><input type="file" id="imgInp" name="image" onchange="readURL(this)"></center>
+              <button class="apply" type="submit" onclick="sendImage()">Send Image</button>
+              <button class="close-modal" value="cancel">No Thanks</button>
+            </form>
+          </dialog>
+          <svg onclick="displayImageContainer()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+            class="feather feather-image">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <path d="M21 15l-5-5L5 21" /></svg>&nbsp;&nbsp;&nbsp;
+          <dialog id="dialog">
+            <form method="dialog">
+              <center><input type="file" id="file" name="file"></center>
+              <button class="apply" type="submit" onclick="sendFile()">Send File</button>
+              <button class="close-modal" id="close-modal" value="cancel">No Thanks</button>
+            </form>
+          </dialog>
+          <svg onclick="displayFileContainer()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+            class="feather feather-paperclip">
+            <path
+              d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
+            </svg>
+          <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+
+          <input type="text" id="send" onkeyup="notTyping()" onblur="notTyping()" placeholder="Type something here..." />
+
+          <input type="submit" value="Send" style="width: 75px;" id="sendB" onclick="sendMessage()">
+          <script>
+            document.querySelector('#send').addEventListener('keypress', function (e) {
+              if (e.key === 'Enter') {
+                sendMessage();
+              }
+          });
+          document.querySelector('#send').addEventListener('keydown', function (e) {
+            if(e.key!='Enter'){
+              socket.emit('typing',{
+                "username":{{username|tojson}},
+                "key":current_key
+              });
+            }
+        });
+
+          function notTyping(){
+            socket.emit('nottyping',{
+              "username":{{username|tojson}},
+              "key":current_key
+            });
+          }
+            socket.on('typing',data=>{
+              if(data["username"]!={{username|tojson}})
+              {
+                var a = $('.chat-area-title').text();
+                a = a.replace(" is typing...","");
+                $('.chat-area-title').text(a);
+                var x = $('.chat-area-title').text();
+                $('.chat-area-title').text(x+" is typing...");
+              }
+            });
+            socket.on('nottyping',data=>{
+              if(data["username"]!={{username|tojson}})
+              {
+                var a = $('.chat-area-title').text();
+                a = a.replace(" is typing...","");
+                $('.chat-area-title').text(a);
+              }
+            });
+            function sendMessage() {
+              var message = document.getElementById('send').value;
+              if (message != "") {
+                if (selected_type == "private") {
+                  socket.emit('new_message', {
+                    "user_type": "personal",
+                    "sender_username": {{username | tojson}},
+                    "sender_profile": $('.user-profile').attr('src'),
+                    "message": message,
+                    "type": "text",
+                    "key": current_key,
+                  });
+                  message_from += 1;
+                  message_to += 1;
+                }
+                if (selected_type == "group") {
+                  socket.emit('new_message', {
+                    "user_type": "group",
+                    "sender_username": {{username | tojson}},
+                    "sender_profile": $('.user-profile').attr('src'),
+                    "message": message,
+                    "type": "text",
+                    "key": current_key,
+                  });
+                  message_from += 1;
+                  message_to += 1;
+                }
+                document.getElementById('send').value = "";
+              }
+            }
+          </script>
+        </div>
+      </div>
+      <div class="detail-area" style="display: none;">
+        <div class="detail-area-header">
+          <div class="msg-profile group">
+            <img style="border-radius: 50px;" src="" id="profile_side" style="width: fit-content;">
+          </div>
+          <div class="detail-title">CodePen Group</div>
+          <div class="detail-subtitle">Created by Aysenur, 1 May 2020</div>
+          <div class="detail-buttons" style="display: none;">
+            <button class="detail-button">
+              <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="currentColor"
+                stroke-width="0" stroke-linecap="round" stroke-linejoin="round" class="feather feather-phone">
+                <path
+                  d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+              </svg>
+              Call Group
+            </button>
+            <button class="detail-button">
+              <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="currentColor"
+                stroke-width="0" stroke-linecap="round" stroke-linejoin="round" class="feather feather-video">
+                <path d="M23 7l-7 5 7 5V7z" />
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2" /></svg>
+              Video Chat
+            </button>
+          </div>
+        </div>
+        <div class="detail-changes">
+          <input type="text" placeholder="Search in Conversation" style="display: none;">
+          <div class="detail-change">
+            Change Color
+            <div class="colors">
+              <div class="color blue" data-color="blue"></div>
+              <div class="color purple selected" data-color="purple"></div>
+              <div class="color green" data-color="green"></div>
+              <div class="color orange" data-color="orange"></div>
+            </div>
+          </div>
+          <script>
+            const toggleButton = document.querySelector('.dark-light');
+            const mode = {{ mode | tojson}};
+            if (mode == "dark") {
+              document.body.classList.toggle('dark-mode');
+            }
+            const colors = document.querySelectorAll('.color');
+            colors.forEach(color => {
+              if (new Set(color.classList).has("selected")) {
+                const theme = color.getAttribute('data-color');
+                document.body.setAttribute('data-theme', theme);
+              }
+            });
+            colors.forEach(color => {
+              color.addEventListener('click', e => {
+                colors.forEach(c => c.classList.remove('selected'));
+                const theme = color.getAttribute('data-color');
+                document.body.setAttribute('data-theme', theme);
+                color.classList.add('selected');
+              });
+            });
+            toggleButton.addEventListener('click', () => {
+              datat = {"username":{{username|tojson}},"mode":mode=="dark"?"light":"dark"}
+              fetch("/change_theme", {
+                    method: "POST",
+                    body: JSON.stringify(datat),
+                    cache: "no-cache",
+                    headers: new Headers({
+                      "content-type": "application/json"
+                    })
+                  }).then(res => console.log(res));
+              document.body.classList.toggle('dark-mode');
+            });
+          </script>
+        </div>
+        <div class="detail-photos">
+          <div class="detail-photo-title">
+            Shared photos
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- partial -->
+  <script src="{{ url_for('static', filename='scripts/temp_chat.js') }}"></script>
+
+
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+  <script src='https://onesignal.github.io/emoji-picker/lib/js/config.js'></script>
+  <script src='https://onesignal.github.io/emoji-picker/lib/js/util.js'></script>
+  <script src='https://onesignal.github.io/emoji-picker/lib/js/jquery.emojiarea.js'></script>
+  <script src='https://onesignal.github.io/emoji-picker/lib/js/emoji-picker.js'></script>
+
+  <script>
+    $(function () {
+      // Initializes and creates emoji set from sprite sheet
+      window.emojiPicker = new EmojiPicker({
+        emojiable_selector: '[data-emojiable=true]',
+        assetsPath: 'http://onesignal.github.io/emoji-picker/lib/img/',
+        popupButtonClasses: 'fa fa-smile-o'
+      });
+      // Finds all elements with `emojiable_selector` and converts them to rich emoji input fields
+      // You may want to delay this step if you have dynamically created input fields that appear later in the loading process
+      // It can be called as many times as necessary; previously converted input fields will not be converted again
+      window.emojiPicker.discover();
+    });
+  </script>
+
+</body>
+
+</html>

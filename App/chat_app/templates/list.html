@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - User profile card</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css'>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/List_style.css') }}">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+{% for friends in friend_list %}
+<div class="wrapper">
+		<div class="wrapper-inner">
+			<div class="box-wrapper"> 
+				<div class="box" style="width: 600px;">
+					<div class="avatar">
+                        <img src="{{friends['profile']}}" style="width: 150px;height:150px">
+					</div>
+					<div class="box-inner">
+						<h4 class="name">{{ friends["friend_username"] }} # {{ friends["hashtag"] }}</h4>
+						<h4 class="occupation">{{ friends["friend_name"] }}</h4>
+						<p class="location">{{friends["email"]}}</p>
+						<h3 class="followers-title">{{ friends["total_friends"] }} Friends</h3>
+						<ul class="followers-list">
+							{{  friends["about"] }}
+						</ul>
+					</div>
+					<ul class="social-list">
+						<li><a href="/friends/{{ friends['friend_username'] }}" class="fa fa-envelope"></a></li>
+					</ul>
+				</div>
+            </div>
+		</div>
+    </div>
+    {% endfor %}
+<!-- partial -->
+  <script  src="{{ url_for('static', filename='script/script.js') }}"></script>
+
+</body>
+</html>

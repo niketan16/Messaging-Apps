@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Create Form</title>
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/create_group.css') }}">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.jquery.min.js"></script>
+<link href="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.min.css" rel="stylesheet"/>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+<link rel='stylesheet' href='https://harvesthq.github.io/chosen/chosen.css'>
+</head>
+<body>
+  <script>
+    $(".chosen-select").chosen({
+      no_results_text: "Oops, nothing found!"
+    })
+  </script>
+<!-- partial:index.partial.html -->
+
+    
+  <div class="signupform" style="margin-left: -50px;">
+    <h1>Create Group</h1>
+    <center><form method="post" enctype="multipart/form-data">        
+      <input type="file" name="group_profile"><br/> 
+      <input type="text" placeholder="Group Name" id="fname" name="group_name"/><br/> 
+      <input type="text" placeholder="Group Description" id="fname" name="group_description"/><br/>
+      <div id="output1"></div>
+      <select data-placeholder="Choose Members ..." name="arr[]" multiple class="chosen-select" style="width: 940px;"> 
+        {% for friends in friend_list %}
+          <option value="{{ friends['username']}}" style="margin-left: auto;">{{ friends['name']}}
+        {% endfor %}
+      </select><br><br>
+      <div id="output2"></div>
+      <select data-placeholder="Choose Admins ..." name="brr[]" multiple class="chosen-select" style="width: 940px;"> 
+        {% for friends in friend_list %}
+        <option value="{{ friends['username']}}" style="margin-left: auto;">{{ friends['name']}}
+        {% endfor %}
+      </select><br><br>
+      <script>
+        document.getElementById('output1').innerHTML = location.search;
+        document.getElementById('output2').innerHTML = location.search;
+        $(".chosen-select").chosen();
+      </script> 
+      <button id="signup" >
+        <span class="signup"><input type="submit" style="background-color: inherit;border: none; " value="Create"></span>
+      </button>
+    </form></center>        
+  </div>      
+</div>
+<!-- partial -->
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.min.js'></script>
+<script src='https://harvesthq.github.io/chosen/chosen.jquery.js'>
+
+</body>
+</html>

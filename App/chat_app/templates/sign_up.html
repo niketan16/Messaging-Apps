@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>L</title>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-migrate-3.1.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+</head>
+
+<body>
+    <h1> Sign Up Form</h1>
+
+    <form method="POST" enctype="multipart/form-data" id="signupform">
+        <input type='file' name="profile_picture" required accept="image/*">Profile Picture<br>
+        <label>Userhandle : </label><input type="text" name="username" id="username" autocomplete="" /><br>
+        <div id="msg"></div>
+        <label>Name : </label><input type="text" name="name" id="name" autocomplete="" /><br>
+        <label>Email : </label><input type="text" name="email" id="email" autocomplete="" /><br>
+        <label>About : </label><textarea name="about"></textarea><br>
+        <label>Password : </label><input type="password" name="password" id="password" autocomplete="off" /><br>
+        <label>Confirm Password : </label><input type="password" name="confirm_password" id="confirm_password" autocomplete="off" /><br>
+        <input type="submit" value="Submit">
+    </form>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#username").on('input', function(e) {
+                $('#msg').hide();
+
+                if ($('#username').val() == null || $('#username').val() == "") {
+                    $('#msg').show();
+                    $("#msg").html("Username is required field.").css("color", "red");
+                } else {
+                    $.ajax({
+                        type: "POST",
+                        url: "http://localhost:8080/user_check",
+                        data: $('#signupform').serialize(),
+                        headers: {
+                            "Access-Control-Allow-Origin": "*"
+                        },
+                        dataType: "html",
+                        cache: false,
+                        success: function(msg) {
+                            console.log(msg)
+                            $('#msg').show();
+                            $("#msg").html(msg);
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            $('#msg').show();
+                            $("#msg").html(textStatus + " " + errorThrown);
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

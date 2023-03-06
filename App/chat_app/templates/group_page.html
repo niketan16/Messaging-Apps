@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - One Punch Man - Business Card</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/group_page.css') }}">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:400,500" rel="stylesheet">
+<a href="/create_group" style="text-decoration: none; color:inherit">Create Group</a>
+{% if group_list_len==0 %} 
+<p>No groups</p>
+{% endif %}
+{% if group_list_len>0 %}
+   {% for groups in group_list %}
+      <div class="card">
+         <div class="card-avatar">
+            <img src="{{ groups['group_profile'] }}" style="max-height: 150px;"alt="">
+         </div>
+         <div class="card-details">
+            <div class="name"><a href="/group/{{groups['id']}}" style="text-decoration: none; color:inherit">{{groups["group_name"]}}</a></div>
+            
+            <div class="card-about">
+               <div class="item">
+                  <span class="value">{{ groups["total_members"] }}</span>
+                  <span class="label">Total Members</span>
+               </div>
+               <div class="item">
+                  <span class="value">{{ groups["total_admins"] }}</span>
+                  <span class="label">Total Admins</span>
+               </div>
+               <div class="item">
+                  <span class="value">{% if groups["isAdmin"]==True %} Yes {% endif %} {% if groups["isAdmin"]==False %} No {% endif %}</span>
+                  <span class="label">Admin ?</span>
+               </div>
+            </div>
+            <div class="skills">
+               <span class="value">{{ groups["group_description"] }}</span>
+            </div>
+            <div class="skills">
+               <span class="value"><a href="/group_settings/{{groups['id']}}">Settings</a></span>
+            </div>
+         </div>
+      </div>
+   {% endfor %}
+{% endif %}
+<!-- partial -->
+  
+</body>
+</html>

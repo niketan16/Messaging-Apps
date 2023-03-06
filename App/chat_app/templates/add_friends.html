@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - Expandable Search Bar</title>
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/add_friend.css') }}">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+<body>
+      <form method="POST">
+            <div class="search-box" style="margin-top: -75px;" >
+                  <input type ="text" name="username" class ="txt" placeholder ="Add Username Here...">
+                  <a class ="btn"><i class ="fa fa-user"></i></a>
+            </div><br>
+            <div class="search-box" style="margin-top: 75px;">
+                  <input type ="text" name="hashtag" class ="txt" placeholder ="Add # Here...">
+                  <a class ="btn"><i class ="fa fa-hashtag"></i></a>
+            </div>
+            <div style="margin-top: 500px; margin-left:620px">
+                  <input type="submit" value="Add" style="font: oblique;width:300px">
+            </div>
+</form>
+</body>
+<!-- partial -->
+  
+</body>
+</html>

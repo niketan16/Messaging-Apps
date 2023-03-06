@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Create Form</title>
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/create_group.css') }}">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.jquery.min.js"></script>
+<link href="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.min.css" rel="stylesheet"/>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+  <script>
+    $(".chosen-select").chosen({
+      no_results_text: "Oops, nothing found!"
+    })
+  </script>
+<!-- partial:index.partial.html -->
+
+    
+  <div class="signupform" style="margin-left: -50px;">
+    <h1>Create Group</h1>
+    <center><form method="post" enctype="multipart/form-data">
+    <img src=" http://localhost:8080/{{ data['group_profile'] }}" style="max-height: 150px;" ><br>
+      <input type="file" name="group_profile"><br/> 
+      <input type="text" placeholder="Group Name" id="fname" value="{{ data['group_name'] }}" name="group_name"/><br/> 
+      <input type="text" placeholder="Group Description" id="fname" value="{{ data['group_description'] }}" name="group_description"/><br/> 
+      <a href="/add_members/{{ data['key'] }}">Add Members</a>&nbsp
+      <a href="/remove_members/{{ data['key'] }}">Remove Members</a><br>
+      <button id="signup" >
+        <span class="signup"><input type="submit" style="background-color: inherit;border: none; " value="Update"></span>
+      </button>
+    </form></center>        
+  </div>      
+</div>
+<!-- partial -->
+  
+
+</body>
+</html>

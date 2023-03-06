@@ -1,0 +1,77 @@
+version: '3'
+services:
+  chat_app:
+    build: ./chat_app
+    ports:
+        - "8080:8080"
+    volumes:
+        - ./chat_app:/chat_app
+    networks:
+      - messaging
+    restart: on-failure
+    depends_on:
+        - rabbitmq
+        - mongodb
+  message_consumer:
+    build: ./chat_app/message_consumer
+    volumes:
+        - ./chat_app:/chat_app
+    restart: on-failure
+    ports:
+      - "5000:5080"
+    depends_on:
+        - rabbitmq
+        - mongodb
+    networks:
+        - messaging
+  cron_job:
+    build: ./chat_app/schedule
+    volumes:
+        - ./chat_app:/chat_app
+    restart: on-failure
+    ports:
+      - "5009:5081"
+    depends_on:
+        - rabbitmq
+        - mongodb
+    networks:
+        - messaging
+  password_hash:
+    build: ./chat_app/password_hash
+    ports:
+      - "9000:9000"
+    volumes:
+        - ./chat_app/password_hash:/usr/src/password_hash
+    networks:
+      - messaging
+  mailer:
+    build: ./chat_app/mailer_service
+    ports:
+      - "9001:9001"
+    volumes:
+        - ./chat_app/mailer_service:/usr/src/mailer
+    networks:
+      - messaging
+  mongodb:
+    image : mongo
+    container_name: mongodb
+    environment:
+        - PUID=1000
+        - PGID=1000
+    volumes:
+        - ./chat_app/mongodb/database:/data/db
+    ports:
+        - 27017:27017
+    restart: unless-stopped
+    networks:
+      - messaging
+  rabbitmq:
+    image: 'rabbitmq:3.6-management-alpine'
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    networks:
+        - messaging
+networks:
+  messaging:
+    driver: bridge

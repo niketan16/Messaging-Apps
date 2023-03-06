@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Chat App</title>
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700|Raleway:300,600" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1"><link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css'>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/landing_style.css') }}">
+<script src="https://code.jquery.com/jquery-migrate-3.1.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<div class="container">
+   <section id="formHolder" >
+
+      <div class="row">
+
+         <!-- Brand Box -->
+         <div class="col-sm-6 brand">
+            <a href="#" class="logo">NS <span>.</span></a>
+
+            <div class="heading">
+               <h2>Chat App</h2>
+               <p>Talk Endlessly</p>
+            </div>
+
+            <div class="success-msg">
+               <p>Great! You are one of our members now</p>
+               <a href="#" class="profile">Your Profile</a>
+            </div>
+         </div>
+
+
+         <!-- Form Box -->
+         <div class="col-sm-6 form">
+
+            <!-- Login Form -->
+            <div class="login form-peice switched" >
+               <form class="login-form" action="/login" method="post">
+                  <div class="form-group">
+                     <label for="loginemail">User Handle</label>
+                     <input type="text" name="username" id="loginemail" required>
+                  </div>
+
+                  <div class="form-group">
+                     <label for="loginPassword">Password</label>
+                     <input type="password" name="password" id="loginPassword" required>
+                  </div>
+
+                  <div class="CTA">
+                     <input type="submit" value="Login">
+                     <a href="#" class="switch">I'm New</a>
+                  </div>
+               </form>
+            </div><!-- End Login Form -->
+
+
+            <!-- Signup Form -->
+            <div class="signup form-peice" style="height: 600px;margin-top:-25px">
+               <form class="signup-form"  method="POST" action="/sign_up" enctype="multipart/form-data" id="signup-form">
+                  <div class="form-group">
+                     <input type="file" name="profile_picture">Profile Picture
+                     <span class="error"></span>
+                  </div>
+                  <div class="form-group">
+                     <label for="name">User Handle</label>
+                     <input type="text" name="username" id="username" class="name">
+                     <span class="error"></span>
+                  </div>
+                  <div id="msg"></div>
+                  <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" name="name" id="name" class="name">
+                    <span class="error"></span>
+                 </div>
+                  <div class="form-group">
+                     <label for="email">Email Adderss</label>
+                     <input type="email" name="email" id="email" class="email">
+                     <span class="error"></span>
+                  </div>
+
+                  <div class="form-group">
+                     <label for="phone">About</label>
+                     <input type="text" name="about" id="phone">
+                  </div>
+
+                  <div class="form-group">
+                     <label for="password">Password</label>
+                     <input type="password" name="password" id="password" class="pass">
+                     <span class="error"></span>
+                  </div>
+
+                  <div class="form-group">
+                     <label for="passwordCon">Confirm Password</label>
+                     <input type="password" name="confirm_password" id="passwordCon" class="passConfirm">
+                     <span class="error"></span>
+                  </div>
+
+                  <div class="CTA">
+                     <input type="submit" value="Signup Now" id="submit">
+                     <a href="#" class="switch">I have an account</a>
+                  </div>
+               </form>
+            </div><!-- End Signup Form -->
+         </div>
+      </div>
+
+   </section>
+
+
+   <footer>
+
+   </footer>
+
+</div>
+<!-- partial -->
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+<script  src="{{ url_for('static',filename='css/landing_script.js') }}"></script>
+
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $("#username").on('input', function(e) {
+            $('#msg').hide();
+
+            if ($('#username').val() == null || $('#username').val() == "") {
+                $('#msg').show();
+                $("#msg").html("Username is required field.").css("color", "red");
+            } else {
+                $.ajax({
+                    type: "POST",
+                    url: "http://localhost:8080/user_check",
+                    data: $('#signup-form').serialize(),
+                    headers: {
+                        "Access-Control-Allow-Origin": "*"
+                    },
+                    dataType: "html",
+                    cache: false,
+                    success: function(msg) {
+                        console.log(msg)
+                        $('#msg').show();
+                        $("#msg").html(msg);
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        $('#msg').show();
+                        $("#msg").html(textStatus + " " + errorThrown);
+                    }
+                });
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - Day 3: User Profile</title>
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/home_style.css') }}">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+
+<main class="profile">
+  <div class="profile-bg"></div>
+  <section class="container">
+    
+        <img src="{{profile_image}}" style="width: 405px; border-radius: 10px;">
+        <a class="camera" href="#">
+            <i class="fas fa-camera"></i>
+        </a>
+
+    <section class="profile-info">
+      <h1 class="first-name">{{ username }}</h1>
+      <h2>SATUS</h2>
+      <p>
+        {{ about }}
+      </p>
+    </section>
+  </section>
+  <section class="statistics">
+    <button class="icon arrow left"></button>
+    <button class="icon arrow right"></button>
+    <p><strong></strong># {{ hashtag }}</p>
+    <p><strong>{{ number_of_friends }}</strong><a href="/add_friend" style="text-decoration: none;color:inherit">Friends +</a></a></p>
+    <p><strong>{{ groups }}</strong><a href="/create_group" style="text-decoration: none;color:inherit">Groups +</a></p>
+    <p><strong></strong><a href="/message" style="text-decoration: none;color:inherit">Meesages</a></p>
+    <p><strong></strong><a href="/logout" style="text-decoration: none;color:inherit">Logout</a></p>
+  </section>
+  <button class="icon close"></button>
+</main>
+<!-- partial -->
+  
+</body>
+</html>
